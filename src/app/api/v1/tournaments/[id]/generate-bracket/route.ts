@@ -2,12 +2,6 @@ import { NextResponse } from 'next/server';
 import { pool } from '@/config/database';
 import { verifyToken } from '@/lib/jwt';
 
-// 1. Definimos la interfaz para que TypeScript sepa qué forma tiene "p"
-interface ParticipantRow {
-  user_id: string | number;
-  historical_wins: string | number;
-}
-
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,6 +12,7 @@ export async function POST(
     const { id } = await params;
     const tournamentId = parseInt(id, 10);
 
+    
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -68,14 +63,13 @@ export async function POST(
       return NextResponse.json({ error: 'No hay suficientes participantes para generar llaves' }, { status: 400 });
     }
 
-    // 2. Aquí aplicamos el tipo (p: ParticipantRow)
-const sortedParticipants = participants.map((p: ParticipantRow) => {
+    const sortedParticipants = participants.map(p => {
       const randomness = Math.floor(Math.random() * 15);
       return {
         user_id: p.user_id,
         sortScore: Number(p.historical_wins) + randomness
       };
-    }).sort((a: { sortScore: number }, b: { sortScore: number }) => b.sortScore - a.sortScore);
+    }).sort((a, b) => b.sortScore - a.sortScore); 
 
     let matchCounter = 1;
     

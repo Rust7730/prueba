@@ -4,6 +4,33 @@ import { createTipSchema } from '@/schemas/tipSchema';
 import { verifyToken } from '@/lib/jwt';
 import { validateChampion } from '@/services/riotService';
 
+export async function GET() {
+  try {
+    const query = `
+      SELECT 
+        t.id, t.game_id, t.title, t.content, t.category, t.likes_count, t.created_at,
+        u.name AS author_name,
+        g.name AS game_name
+      FROM tips t
+      JOIN users u ON t.author_id = u.id
+      JOIN games g ON t.game_id = g.id
+      ORDER BY t.created_at DESC
+      LIMIT 50;
+    `;
+
+    const tipsResult = await pool.query(query);
+
+    return NextResponse.json({
+      message: 'Tips recuperados exitosamente',
+      tips: tipsResult.rows
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error obteniendo tips:', error);
+    return NextResponse.json({ error: 'Error interno del servidor al obtener tips' }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   const client = await pool.connect();
 
